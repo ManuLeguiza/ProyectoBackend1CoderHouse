@@ -10,14 +10,19 @@ app.get ('/', (req, res) => {
     res.send('Hola, todo ok en raiz')
 })
 
-app.get ('/edpoint1', (req, res) => {
-    console.log('solicitud recibida de edpoint1')
-    res.send('Hola, todo ok en el 1')
+app.get ('/api/users', (req, res) => {
+    console.log('solicitud recibida de get')
+    res.status(200).send({ error: null, data: 'Hola, todo ok'})
 })
 
-app.get ('/edpoint2', (req, res) => {
-    console.log('solicitud recibida de edpoint2')
-    res.send('Hola, todo ok en el 2')
+app.post ('/api/users', (req, res) => {
+    console.log('solicitud recibida de post')
+    if (req.body.hasOwnProperty('firstName') && req.body.hasOwnProperty('lastName')){
+        res.status(200).send({ error: null, data: `${req.body.firstName}, ${req.body.lastName} (activo: ${req.body.active})`})
+    } else {
+        res.status(400).send({error: 'Faltan campos obligatorios', data: []})
+    }
+    
 })
 
 app.listen(PORT, () => {
