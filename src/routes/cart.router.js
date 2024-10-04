@@ -8,12 +8,12 @@ router.get ('/', (req, res) => {
 });
 
 router.post ('/', (req, res) => {
-    const {title, description, code, price, stock, category} = req.body
+    const { products } = req.body
 
     
-    if (title != '' && description != '' && code != '' && price != '' && stock != '' && category != ''){
+    if (products != ''){
         const maxId = Match.max(...cart.map(element => +element.id))
-        const newCart = {id: maxId + 1, title: title, description: description, code: code, price: price, stock: stock, category: category}
+        const newCart = {id: maxId + 1, products: []}
         
         cart.push(newCart)
 
@@ -31,7 +31,7 @@ router.put('/:id', (req, res) => {
         cart[index] = req.body;
         res.status(200).send({ error: null, data: cart[index] });
     } else {
-        res.status(404).send({ error: 'No se encuentra el usuario', data: [] });
+        res.status(404).send({ error: 'No se encuentra el carrito', data: [] });
     }
 });
 
@@ -41,9 +41,9 @@ router.delete('/:id', (req, res) => {
     
     if (index > -1) {
         cart.splice(index, 1);
-        res.status(200).send({ error: null, data: 'Usuario borrado' });
+        res.status(200).send({ error: null, data: 'Carrito borrado' });
     } else {
-        res.status(404).send({ error: 'No se encuentra el usuario', data: [] });
+        res.status(404).send({ error: 'No se encuentra el carrito', data: [] });
     }
 });
 
