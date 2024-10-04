@@ -2,21 +2,28 @@ import { Router } from "express";
 
 const router = Router ();
 
-router.get ('/api/cart', (req, res) => {
+router.get ('/', (req, res) => {
     console.log('solicitud recibida de get')
     res.status(200).send({ error: null, data: 'Hola, todo ok'})
 });
 
-router.post ('/api/cart', (req, res) => {
-    console.log('solicitud recibida de post')
-    if (req.body.hasOwnProperty('firstName') && req.body.hasOwnProperty('lastName')){
-        res.status(200).send({ error: null, data: `${req.body.firstName}, ${req.body.lastName} (activo: ${req.body.active})`})
+router.post ('/', (req, res) => {
+    const {title, description, code, price, stock, category} = req.body
+
+    
+    if (title != '' && description != '' && code != '' && price != '' && stock != '' && category != ''){
+        const maxId = Match.max(...cart.map(element => +element.id))
+        const newCart = {id: maxId + 1, title: title, description: description, code: code, price: price, stock: stock, category: category}
+        
+        cart.push(newCart)
+
+        res.status(200).send({ error: null, data: newCart, file: req.file})
     } else {
         res.status(400).send({error: 'Faltan campos obligatorios', data: []})
     }
 });
 
-router.put('/api/cart/:id', (req, res) => {
+router.put('/:id', (req, res) => {
     const id = parseInt(req.params.id);
     const index = cart.findIndex(element => element.id === id);
     
@@ -28,7 +35,7 @@ router.put('/api/cart/:id', (req, res) => {
     }
 });
 
-router.delete('/api/cart/:id', (req, res) => {
+router.delete('/:id', (req, res) => {
     const id = parseInt(req.params.id);
     const index = cart.findIndex(element => element.id === id);
     

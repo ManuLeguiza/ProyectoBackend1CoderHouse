@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { uploader } from "../uploader.js";
 
 const router = Router ();
 const users = [
