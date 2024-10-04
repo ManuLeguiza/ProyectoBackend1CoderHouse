@@ -5,8 +5,7 @@ import { products } from '../config.js';
 const router = Router ();
 
 router.get ('/', (req, res) => {
-    console.log('solicitud recibida de get')
-    res.status(200).send({ error: null, data: 'Hola, todo ok'})
+    res.status(200).send({ error: null, data: products})
 });
 
 router.post ('/', (req, res) => {
