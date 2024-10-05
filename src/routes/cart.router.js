@@ -1,14 +1,34 @@
 import { Router } from "express";
+import { products } from "../config";
 
 const router = Router ();
+const carts =[]
+const cartIdCounter = 1
 
 router.get ('/', (req, res) => {
     console.log('solicitud recibida de get')
-    res.status(200).send({ error: null, data: 'Hola, todo ok'})
+    const {id } = req.params;
+    const cart = carts.find(c => id == id);
+
+    if (!cart) {
+        return res.status(404).json({ error: 'Carrito no encontrado' });
+    } else {
+        res.status(200).send({ error: null, data: 'Hola, todo ok'})
+    }
+
+    res.json(cart.products); 
 });
+   
+
 
 router.post ('/', (req, res) => {
-    const { products } = req.body
+    const newCart = {
+        id: cartIdCounter++,  
+        products: []          
+    };
+    
+    carts.push(newCart);
+    res.status(201).json(newCart); 
 
     
     if (products != ''){
@@ -21,6 +41,25 @@ router.post ('/', (req, res) => {
     } else {
         res.status(400).send({error: 'Faltan campos obligatorios', data: []})
     }
+});
+
+router.post('/:cid/product/:pid', (req, res) => {
+    const { cid, pid } = req.params;
+
+    const cart = carts.find(c => cid == cid);
+    if (!cart) {
+        return res.status(404).json({ error: 'Carrito no encontrado' });
+    }
+
+    const productInCart = cart.products.find(p => p.product == pid);
+    
+    if (productInCart) {
+        productInCart.quantity += 1;
+    } else {
+        cart.products.push({ product: pid, quantity: 1 });
+    }
+
+    res.status(200).json(cart);  
 });
 
 router.put('/:id', (req, res) => {
