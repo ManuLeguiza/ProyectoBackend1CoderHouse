@@ -1,52 +1,59 @@
 import { Router } from "express";
 import { products } from "../config";
+import { promises as fs } from 'fs';
 
 const router = Router ();
 const carts =[]
 const cartIdCounter = 1
+const cartsFilePath = './carrito.json';
 
-router.get ('/', (req, res) => {
-    console.log('solicitud recibida de get')
-    const {id } = req.params;
-    const cart = carts.find(c => id == id);
-
-    if (!cart) {
-        return res.status(404).json({ error: 'Carrito no encontrado' });
-    } else {
-        res.status(200).send({ error: null, data: 'Hola, todo ok'})
+async function readCartsFile() {
+    try {
+        const data = await fs.readFile(cartsFilePath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error("Error al leer el archivo de carritos:", error);
+        return [];
     }
+}
 
-    res.json(cart.products); 
-});
-   
+async function writeCartsFile(carts) {
+    try {
+        await fs.writeFile(cartsFilePath, JSON.stringify(carts, null, 2));
+    } catch (error) {
+        console.error("Error al escribir en el archivo de carritos:", error);
+    }
+}
 
-
-router.post ('/', (req, res) => {
+router.post('/', async (req, res) => {
+    let carts = await readCartsFile();
     const newCart = {
-        id: cartIdCounter++,  
-        products: []          
+        id: carts.length + 1, 
+        products: []
     };
     
     carts.push(newCart);
-    res.status(201).json(newCart); 
-
-    
-    if (products != ''){
-        const maxId = Match.max(...cart.map(element => +element.id))
-        const newCart = {id: maxId + 1, products: []}
-        
-        cart.push(newCart)
-
-        res.status(200).send({ error: null, data: newCart, file: req.file})
-    } else {
-        res.status(400).send({error: 'Faltan campos obligatorios', data: []})
-    }
+    await writeCartsFile(carts);
+    res.status(201).json(newCart);
 });
 
-router.post('/:cid/product/:pid', (req, res) => {
-    const { cid, pid } = req.params;
+router.get('/:cid', async (req, res) => {
+    const { cid } = req.params;
+    const carts = await readCartsFile();
+    const cart = carts.find(c => c.id == cid);
 
-    const cart = carts.find(c => cid == cid);
+    if (!cart) {
+        return res.status(404).json({ error: 'Carrito no encontrado' });
+    }
+
+    res.json(cart.products);
+});
+
+router.post('/:cid/product/:pid', async (req, res) => {
+    const { cid, pid } = req.params;
+    const carts = await readCartsFile();
+
+    const cart = carts.find(c => c.id == cid);
     if (!cart) {
         return res.status(404).json({ error: 'Carrito no encontrado' });
     }
@@ -54,12 +61,12 @@ router.post('/:cid/product/:pid', (req, res) => {
     const productInCart = cart.products.find(p => p.product == pid);
     
     if (productInCart) {
-        productInCart.quantity += 1;
+        productInCart.quantity += 1;  
     } else {
-        cart.products.push({ product: pid, quantity: 1 });
+        cart.products.push({ product: pid, quantity: 1 });  
     }
-
-    res.status(200).json(cart);  
+    await writeCartsFile(carts);  
+    res.status(200).json(cart);
 });
 
 router.put('/:id', (req, res) => {

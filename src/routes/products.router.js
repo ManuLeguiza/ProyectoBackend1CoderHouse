@@ -1,19 +1,46 @@
 import { Router } from "express";
 import { products } from '../config.js';
+import { promises as fs } from 'fs';
 
 
+const productsFilePath = './productos.json';
 const router = Router ();
 
-router.get ('/', (req, res) => {
-    const id = parseInt(req.params.id)
-    const product = products.find(p => id == id);
+async function readProductsFile() {
+    try {
+        const data = await fs.readFile(productsFilePath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error("Error al leer el archivo de productos:", error);
+        return [];
+    }
+}
+async function writeProductsFile(products) {
+    try {
+        await fs.writeFile(productsFilePath, JSON.stringify(products, null, 2));
+    } catch (error) {
+        console.error("Error al escribir en el archivo de productos:", error);
+    }
+}
+
+
+router.get ('/', async (req, res) => {
+    const products = await readProductsFile();
+    let { limit } = req.query;
+    limit = limit ? parseInt(limit) : products.length;
+    res.json(products.slice(0, limit));
+});
+
+router.get('/:pid', async (req, res) => {
+    const products = await readProductsFile();
+    const { pid } = req.params;
+    const product = products.find(p => p.id == pid);
     
     if (!product) {
         return res.status(404).json({ error: 'Producto no encontrado' });
     }
     
     res.json(product);
-    res.status(200).send({ error: null, data: products})
 });
 
 router.post ('/', (req, res) => {
