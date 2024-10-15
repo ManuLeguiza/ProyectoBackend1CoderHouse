@@ -5,6 +5,7 @@ import cartRouter from './routes/cart.router.js'
 import config from "./config.js"
 import handlebars from "express-handlebars"
 import viewsRouter from './routes/views.router.js'
+import { Server } from 'socket.io'
 
 const app = express()
 
@@ -22,6 +23,18 @@ app.use('/api/products', productsRouter);
 app.use('/api/cart', cartRouter);
 app.use('/views', viewsRouter);
 
-app.listen(config.PORT, () => {
-    console.log('server activo')
-})
+const httpServer = app.listen(config.PORT, () => {
+    console.log(`Server activo en puerto ${config.PORT}`);
+});
+
+const socketServer = new Server(httpServer);
+app.set('socketServer', socketServer);
+
+socketServer.on('connection', socket => {
+    console.log(`Nuevo cliente conectado con id ${socket.id}`);
+    socket.on('init_message', data => {
+        console.log(data);
+    });
+
+    socket.emit('welcome', `Bienvenido cliente, estás conectado con el id ${socket.id}`);
+});
