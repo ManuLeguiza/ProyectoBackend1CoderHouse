@@ -1,22 +1,12 @@
 import { Router } from 'express';
+import { users } from '../config.js';
 
 
 const router = Router();
 
-const users = [
-    { id: 1, firstName: 'Juan', lastName: 'Perez' },
-    { id: 2, firstName: 'Carlos', lastName: 'Perren' },
-    { id: 3, firstName: 'Luis', lastName: 'Gonzalez' }
-];
 
 router.get('/', (req, res) => {
     const data = {
-        firstName: 'Carlos',
-        lastName: 'Perren',
-        age: 49,
-        email: 'idux.net@gmail.com',
-        phone: '+5493492555666',
-        isAdmin: true,
         users: users
     };
     
@@ -30,6 +20,13 @@ router.get('/register', (req, res) => {
     // const template = 'register';
     // res.status(200).render(template, data);
     res.status(200).render('register', data);
+});
+
+router.get('/chat', (req, res) => {
+    const data = {
+    };
+    
+    res.status(200).render('chat', data);
 });
 
 
