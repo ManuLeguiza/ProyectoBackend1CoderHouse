@@ -1,11 +1,12 @@
 import express from "express"
+import { Server } from 'socket.io'
+import handlebars from "express-handlebars"
+import config from "./config.js"
+
 import productsRouter from './routes/products.router.js'
 import usersRouter from './routes/users.router.js'
 import cartRouter from './routes/cart.router.js'
-import config from "./config.js"
-import handlebars from "express-handlebars"
 import viewsRouter from './routes/views.router.js'
-import { Server } from 'socket.io'
 
 const app = express()
 
@@ -16,12 +17,50 @@ app.engine('handlebars', handlebars.engine());
 app.set('views', `${config.DIRNAME}/views`);
 app.set('view engine', 'handlebars');
 
+app.use('/views', viewsRouter);
+app.use('/api/users', usersRouter);
 app.use('/static', express.static(`${config.DIRNAME}/public`))
 
-app.use('/api/users', usersRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/cart', cartRouter);
-app.use('/views', viewsRouter);
+//Consiga de preentrega2
+let products = [];
+
+app.get('/home', (req, res) => {
+  res.render('home', { products });
+});
+
+app.get('/realtimeproducts', (req, res) => {
+  res.render('realTimeProducts', { products });
+});
+// Websocket: manejo de conexiones
+io.on('connection', (socket) => {
+    console.log('Nuevo cliente conectado');
+    // Enviamos la lista actual de productos al conectarse
+    socket.emit('productListUpdate', products);
+  });
+  
+  // Ruta para agregar productos
+  app.post('/products', (req, res) => {
+    const newProduct = req.body;
+    products.push(newProduct);
+  
+    // Emitir evento para actualizar la lista de productos
+    io.emit('productListUpdate', products);
+  
+    res.status(201).send('Producto agregado');
+  });
+  
+  // Ruta para eliminar productos
+  app.post('/products/delete', (req, res) => {
+    const { name } = req.body;
+    products = products.filter(p => p.name !== name);
+  
+    // Emitir evento para actualizar la lista de productos
+    io.emit('productListUpdate', products);
+  
+    res.status(200).send('Producto eliminado');
+  });
 
 const httpServer = app.listen(config.PORT, () => {
     console.log(`Server activo en puerto ${config.PORT}`);
